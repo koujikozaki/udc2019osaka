@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<html>
+  <head>
+    <link rel="stylesheet" type="text/css" href="lib/bootstrap/css/bootstrap.css"/>
+		<link rel="stylesheet" href="https://cdn.datatables.net/t/bs-3.3.6/jqc-1.12.0,dt-1.10.11/datatables.min.css"/>
+    <script src="https://d3js.org/d3.v3.min.js"></script>
+    <script src="d3sparql.js"></script>
+		<script src="js/jquery-1.11.0.min.js"></script>
+		<script src="https://cdn.datatables.net/t/bs-3.3.6/jqc-1.12.0,dt-1.10.11/datatables.min.js"></script>
+    <script>
+    function exec() {
+      var endpoint = "https://jpsearch.go.jp/rdf/sparql";
+			//var keyword = d3.select("#keyword").property("value")
+			var element = document.getElementById("target");
+			console.log(element);
+			var keyword=element.keyword.value;
+      var sparql = "select  ?pref (count(?s) as ?c){"+
+									"?s rdfs:label ?lbl."+
+									"FILTER(regex(?lbl,\""+keyword+"\"))"+
+									"?s jps:spatial ?o."+
+									"?o jps:relationType    role:発見.出土 ."+
+									"?o jps:value ?place."+
+									"?place schema:isPartOf    place:日本 ."+
+									"?place rdfs:label ?pref."+
+									"} GROUP BY (?pref)"+
+									"ORDER BY DESC(?c)";
+      d3sparql.query(endpoint, sparql, render)
+    }
+    function render(json) {
+      var config = {
+        "label_x": "都道府県名",
+        "label_y": "出土品数",
+        "var_x": "pref",
+        "var_y": "c",
+        "width":  1000,  // canvas width
+        "height": 500,  // canvas height
+        "margin":  80,  // canvas margin
+        "selector": "#result"
+      }
+      d3sparql.barchart(json, config);
+			var resarray=json["results"]["bindings"];
+			var winnerobjects=[];
+			for(var i =0;i<Math.min(3,resarray.length);i++){
+				var resobj={"都道府県名":resarray[i].pref.value,"出土数":resarray[i].c.value};
+				winnerobjects.push(resobj);
+			}
+			//console.log(winnerobjects);
+			$('#columns').DataTable({
+		    data:winnerobjects,
+				"destroy": true,
+				columns: [
+							{ data: '都道府県名' },
+							{ data: '出土数' },
+         ],
+				"columnDefs": [ {
+      		"targets": [0,1],
+      		"orderable": false
+    		}],
+				"order": [[ 1, "desc" ]],
+				searching: false, paging: false, info: false
+		  });
+    }
+    </script>
+    <style>
+    .bar:hover {
+      fill: brown;
+    }
+    </style>
+  </head>
+  <body>
+    <div id="query" style="margin: 10px">
+      <h1>出土品日本一はどこだ</h1>
+      <form class="form-inline" id="target">
+        <label>キーワード</label>
+        <div class="input-append">
+					<div class="selection-group">
+					  <input id="a" type="radio" name="keyword" value="埴輪">
+					  <label for="a">
+					    <img src="img/haniwa.png" width="90" height="90">
+					  </label>
+
+					  <input id="b" type="radio" name="keyword" value="石鏃">
+					  <label for="b">
+					    <img src="img/image1.jpeg" width="90" height="90">
+					  </label>
+					  <input id="c" type="radio" name="keyword" value="勾玉">
+					  <label for="c">
+					    <img src="img/image5.jpeg" width="90" height="90">
+					  </label>
+					</div>
+          <!--input id="keyword" class="span5" value="勾玉" type="text"-->
+          <button class="btn" type="button" onclick="exec()">Query</button>
+        </div>
+      </form>
+    </div>
+    <div id="result"></div>
+		<font size="+2"><p>出土都道府県トップ3</p>
+		<table id="columns">
+   		<thead>
+      	<tr>
+         	<th>都道府県名</th>
+         	<th>出土数</th>
+      	</tr>
+   		</thead>
+		</table></font>
+	<style type="text/css">
+		label img {
+  margin: 3px;
+  padding: 8px;
+}
+
+.selection-group input[type="radio"] {
+  display: none;
+}
+
+.selection-group input[type="radio"]:checked + label img {
+  background: orange;
+}
+	</style>
+  </body>
+</html>
