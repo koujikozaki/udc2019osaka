@@ -9,12 +9,17 @@
 		<script src="js/jquery-1.11.0.min.js"></script>
 		<script src="https://cdn.datatables.net/t/bs-3.3.6/jqc-1.12.0,dt-1.10.11/datatables.min.js"></script>
     <script>
-    function exec() {
+    function exec(value) {
+      //console.log(value);
+	  var targetlabel = document.getElementById("illustlabel");
       var endpoint = "https://jpsearch.go.jp/rdf/sparql";
-			//var keyword = d3.select("#keyword").property("value")
-			var element = document.getElementById("target");
-			console.log(element);
-			var keyword=element.keyword.value;
+      if(value==="text"){
+		var element = document.getElementById("texttarget");
+	  }else{
+	  	var element = document.getElementById("target");
+      }
+	  var keyword = element.keyword.value;
+      targetlabel.innerText = keyword;
       var sparql = "select  ?pref (count(?s) as ?c){"+
 									"?s rdfs:label ?lbl."+
 									"FILTER(regex(?lbl,\""+keyword+"\"))"+
@@ -70,30 +75,56 @@
   </head>
   <body>
     <div id="query" style="margin: 10px">
-      <h1>出土品日本一はどこだ</h1>
+      <img src="img/top.png" alt="出土品日本一はどこだ">
+	  <form  id="texttarget">
+		<div class="form-group">
+          <label class="control-label">キーワードから探す</label>
+          <input class="form-control" name="keyword" type="text" value="瓦">
+		  <button class="btn" type="button" onclick="exec('text')">キーワード検索</button>
+        </div>
+	  </form>
       <form class="form-inline" id="target">
-        <label>キーワード</label>
-        <div class="input-append">
-					<div class="selection-group">
-					  <input id="a" type="radio" name="keyword" value="埴輪">
-					  <label for="a">
-					    <img src="img/haniwa.png" width="90" height="90">
-					  </label>
-
-					  <input id="b" type="radio" name="keyword" value="石鏃">
-					  <label for="b">
-					    <img src="img/image1.jpeg" width="90" height="90">
-					  </label>
-					  <input id="c" type="radio" name="keyword" value="勾玉">
-					  <label for="c">
-					    <img src="img/image5.jpeg" width="90" height="90">
-					  </label>
-					</div>
-          <!--input id="keyword" class="span5" value="勾玉" type="text"-->
-          <button class="btn" type="button" onclick="exec()">Query</button>
+        <div class="form-group">
+			<label class="control-label">イラストから選ぶ</label>
+			<div class="selection-group">
+			  <input id="a" type="radio" name="keyword" value="埴輪">
+			  <label for="a">
+			    <img src="img/haniwa.png" width="90" height="90">
+			  </label>
+			  <input id="b" type="radio" name="keyword" value="石鏃">
+			  <label for="b">
+			    <img src="img/yajiri.png" width="90" height="90">
+			  </label>
+			  <input id="c" type="radio" name="keyword" value="勾玉">
+			  <label for="c">
+			    <img src="img/magatama.png" width="90" height="90">
+			  </label>
+			  <input id="d" type="radio" name="keyword" value="刀">
+			  <label for="d">
+			    <img src="img/katana.png" width="90" height="90">
+			  </label>
+			  <input id="e" type="radio" name="keyword" value="縄文土器">
+			  <label for="e">
+			    <img src="img/jyomondoki.png" width="90" height="90">
+			  </label>
+			  <input id="f" type="radio" name="keyword" value="鏡">
+			  <label for="f">
+			    <img src="img/kagami.png" width="90" height="90">
+			  </label>
+			  <input id="g" type="radio" name="keyword" value="土器">
+			  <label for="g">
+			    <img src="img/dokidoki.png" width="90" height="90">
+			  </label>
+			  <input id="h" type="radio" name="keyword" value="杯">
+			  <label for="h">
+			    <img src="img/hai.png" width="90" height="90">
+			  </label>
+			</div>
+          <button class="btn" type="button" onclick="exec()">イラストから検索</button>
         </div>
       </form>
     </div>
+	<font size="+2"><div id="illustlabel"></div>
     <div id="result"></div>
 		<font size="+2"><p>出土都道府県トップ3</p>
 		<table id="columns">
