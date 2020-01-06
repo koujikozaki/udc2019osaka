@@ -6,8 +6,8 @@
 		<link rel="stylesheet" href="https://cdn.datatables.net/t/bs-3.3.6/jqc-1.12.0,dt-1.10.11/datatables.min.css"/>
     <script src="https://d3js.org/d3.v3.min.js"></script>
     <script src="d3sparql.js"></script>
-		<script src="js/jquery-1.11.0.min.js"></script>
-		<script src="https://cdn.datatables.net/t/bs-3.3.6/jqc-1.12.0,dt-1.10.11/datatables.min.js"></script>
+	<script src="js/jquery-1.11.0.min.js"></script>
+	<script src="https://cdn.datatables.net/t/bs-3.3.6/jqc-1.12.0,dt-1.10.11/datatables.min.js"></script>
     <script>
     function exec(value) {
       //console.log(value);
@@ -32,6 +32,106 @@
 									"ORDER BY DESC(?c)";
       d3sparql.query(endpoint, sparql, render)
     }
+    function barchartcustom(json, config) {
+	  console.log(json);
+	  config = config || {}
+
+	  var head = json.head.vars
+	  var data = json.results.bindings
+
+	  var opts = {
+	    "label_x":  config.label_x  || head[0],
+	    "label_y":  config.label_y  || head[1],
+	    "var_x":    config.var_x    || head[0],
+	    "var_y":    config.var_y    || head[1],
+	    "width":    config.width    || 750,
+	    "height":   config.height   || 300,
+	    "margin":   config.margin   || 80,  // TODO: to make use of {top: 10, right: 10, bottom: 80, left: 80}
+	    "selector": config.selector || null
+	  }
+
+	  var scale_x = d3.scale.ordinal().rangeRoundBands([0, opts.width - opts.margin], 0.1)
+	  var scale_y = d3.scale.linear().range([opts.height - opts.margin, 0])
+	  var axis_x = d3.svg.axis().scale(scale_x).orient("bottom")
+	  var axis_y = d3.svg.axis().scale(scale_y).orient("left")  // .ticks(10, "%")
+	  scale_x.domain(data.map(function(d) { return d[opts.var_x].value }))
+	  scale_y.domain(d3.extent(data, function(d) { return parseInt(d[opts.var_y].value) }))
+
+	  var svg = d3sparql.select(opts.selector, "barchart").append("svg")
+	    .attr("width", opts.width)
+	    .attr("height", opts.height)
+	//    .append("g")
+	//    .attr("transform", "translate(" + opts.margin + "," + 0 + ")")
+
+	  var ax = svg.append("g")
+	    .attr("class", "axis x")
+	    .attr("transform", "translate(" + opts.margin + "," + (opts.height - opts.margin) + ")")
+	    .call(axis_x)
+	  var ay = svg.append("g")
+	    .attr("class", "axis y")
+	    .attr("transform", "translate(" + opts.margin + ",0)")
+	    .call(axis_y)
+	  var bar = svg.selectAll(".bar")
+	    .data(data)
+	    .enter()
+	    .append("rect")
+	    .attr("transform", "translate(" + opts.margin + "," + 0 + ")")
+	    .attr("class", "bar")
+	    .attr("x", function(d) { return scale_x(d[opts.var_x].value) })
+	    .attr("width", scale_x.rangeBand())
+	    .attr("y", function(d) { return scale_y(d[opts.var_y].value) })
+	    .attr("height", function(d) { return opts.height - scale_y(parseInt(d[opts.var_y].value)) - opts.margin })
+		//.on("click", function(d) { return window.open('https://google.com', '_blank'); })
+		.on("click", function(d) { return openlink(d[opts.var_x].value); })
+
+      function openlink(_place){
+		var place=_place.slice( 0, -1 ) ;
+		var targetlabel = document.getElementById("illustlabel");
+		var keyword=targetlabel.innerText;
+		var querystring="select ?title ?s  {"
+ 						+"?s rdfs:label ?title."
+						+" FILTER(regex(?title,\""+keyword+"\"))"
+						+"?s jps:spatial ?o."
+						+"?o jps:relationType	role:発見.出土 ."
+						+"?o jps:value place:"+place+".}"
+		window.open(encodeURI('https://jpsearch.go.jp/rdf/sparql/easy/?query='+querystring), '_blank');
+      }
+	  ax.selectAll("text")
+	    .attr("dy", ".35em")
+	    .attr("x", 10)
+	    .attr("y", 0)
+	    .attr("transform", "rotate(90)")
+	    .style("text-anchor", "start")
+	  ax.append("text")
+	    .attr("class", "label")
+	    .text(opts.label_x)
+	    .style("text-anchor", "middle")
+	    .attr("transform", "translate(" + ((opts.width - opts.margin) / 2) + "," + (opts.margin - 5) + ")")
+	  ay.append("text")
+	    .attr("class", "label")
+	    .text(opts.label_y)
+	    .style("text-anchor", "middle")
+	    .attr("transform", "rotate(-90)")
+	    .attr("x", 0 - (opts.height / 2))
+	    .attr("y", 0 - (opts.margin - 20))
+
+	  // default CSS/SVG
+	  bar.attr({
+	    "fill": "steelblue",
+	  })
+	  svg.selectAll(".axis").attr({
+	    "stroke": "black",
+	    "fill": "none",
+	    "shape-rendering": "crispEdges",
+	  })
+	  svg.selectAll("text").attr({
+	    "stroke": "none",
+	    "fill": "black",
+	    "font-size": "8pt",
+	    "font-family": "sans-serif",
+	  })
+	}
+
     function render(json) {
       var config = {
         "label_x": "都道府県名",
@@ -43,27 +143,27 @@
         "margin":  80,  // canvas margin
         "selector": "#result"
       }
-      d3sparql.barchart(json, config);
-			var resarray=json["results"]["bindings"];
-			var winnerobjects=[];
-			for(var i =0;i<Math.min(3,resarray.length);i++){
-				var resobj={"都道府県名":resarray[i].pref.value,"出土数":resarray[i].c.value};
-				winnerobjects.push(resobj);
-			}
-			//console.log(winnerobjects);
-			$('#columns').DataTable({
+        barchartcustom(json, config);
+		var resarray=json["results"]["bindings"];
+		var winnerobjects=[];
+		for(var i =0;i<Math.min(3,resarray.length);i++){
+			var resobj={"都道府県名":resarray[i].pref.value,"出土数":resarray[i].c.value};
+			winnerobjects.push(resobj);
+		}
+		//console.log(winnerobjects);
+		$('#columns').DataTable({
 		    data:winnerobjects,
-				"destroy": true,
-				columns: [
-							{ data: '都道府県名' },
-							{ data: '出土数' },
-         ],
-				"columnDefs": [ {
-      		"targets": [0,1],
-      		"orderable": false
-    		}],
-				"order": [[ 1, "desc" ]],
-				searching: false, paging: false, info: false
+			"destroy": true,
+			columns: [
+						{ data: '都道府県名' },
+						{ data: '出土数' },
+		         ],
+			"columnDefs": [ {
+		      		"targets": [0,1],
+		      		"orderable": false
+		    		}],
+			"order": [[ 1, "desc" ]],
+			searching: false, paging: false, info: false
 		  });
     }
     </script>
