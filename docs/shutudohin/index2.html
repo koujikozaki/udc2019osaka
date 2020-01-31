@@ -29,7 +29,6 @@
  					"?o jps:value 	place:"+keyword+" ."+
  					"}GROUP BY(?pref) "+
  					"ORDER BY DESC(?c)";
-      alert(sparql);
       d3sparql.query(endpoint, sparql, render)
     }
     function barchartcustom(json, config) {
