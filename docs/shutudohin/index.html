@@ -176,14 +176,7 @@
   <body>
     <div id="query" style="margin: 10px">
       <img src="img/top.png" alt="出土品日本一はどこだ">
-	  <form  id="texttarget">
-		<div class="form-group">
-          <label class="control-label">キーワードから探す</label>
-          <input class="form-control" name="keyword" type="text" value="瓦">
-		  <button class="btn" type="button" onclick="exec('text')">キーワード検索</button>
-        </div>
-	  </form>
-      <form class="form-inline" id="target">
+	  <form class="form-inline" id="target">
         <div class="form-group">
 			<label class="control-label">イラストから選ぶ</label>
 			<div class="selection-group">
@@ -223,6 +216,14 @@
           <button class="btn" type="button" onclick="exec()">イラストから検索</button>
         </div>
       </form>
+      <form  id="texttarget">
+		<div class="form-group">
+          <label class="control-label">キーワードから探す</label>
+          <input class="form-control" name="keyword" type="text" value="瓦">
+		  <button class="btn" type="button" onclick="exec('text')">キーワード検索</button>
+        </div>
+	  </form>
+ 
     </div>
 	<font size="+2"><div id="illustlabel"></div>
     <div id="result"></div>
