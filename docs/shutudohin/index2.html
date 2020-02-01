@@ -88,11 +88,11 @@
 		var targetlabel = document.getElementById("illustlabel");
 		var keyword=targetlabel.innerText;
 		var querystring="select ?title ?s  {"
- 						+"?s rdfs:label ?title."
-						+" FILTER(regex(?title,\""+keyword+"\"))"
+						+"?s rdfs:label ?title."
+						+" FILTER(regex(?title,\""+place+"\"))"
 						+"?s jps:spatial ?o."
 						+"?o jps:relationType	role:発見.出土 ."
-						+"?o jps:value place:"+place+".}"
+						+"?o jps:value place:"+keyword+".}"
 		window.open(encodeURI('https://jpsearch.go.jp/rdf/sparql/easy/?query='+querystring), '_blank');
       }
 	  ax.selectAll("text")
@@ -177,7 +177,7 @@
       <img src="img/top.png" alt="出土品日本一はどこだ">
 	  <form  id="texttarget">
 		<div class="form-group">
-          <label class="control-label">都道府県から探す</label>
+          <label class="control-label"><font size="+3">都道府県から探す</font></label>
           <input class="form-control" name="keyword" type="text" value="群馬">
 		  <button class="btn" type="button" onclick="exec('text')">都道府県で検索</button>
         </div>
